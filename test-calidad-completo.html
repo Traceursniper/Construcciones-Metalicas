@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Test completo - Calidad</title>
+<style>
+  :root{
+    --bg:#0f172a; --card:#1e293b; --text:#e2e8f0; --muted:#94a3b8;
+    --accent:#38bdf8; --ok:#22c55e; --bad:#ef4444; --border:#334155;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    background:var(--bg); color:var(--text); padding:24px 16px 80px;
+  }
+  .wrap{max-width:760px; margin:0 auto;}
+  h1{font-size:1.5rem; margin-bottom:2px;}
+  .sub{color:var(--muted); margin-bottom:20px; font-size:.95rem;}
+  h2.bloque{
+    font-size:1.05rem; color:var(--accent); margin:36px 0 12px;
+    border-bottom:1px solid var(--border); padding-bottom:6px;
+  }
+  .q{
+    background:var(--card); border:1px solid var(--border); border-radius:12px;
+    padding:16px 18px; margin-bottom:14px;
+  }
+  .q p.stem{font-weight:600; margin:0 0 12px; line-height:1.4;}
+  label{
+    display:block; padding:9px 12px; border-radius:8px; margin-bottom:7px;
+    cursor:pointer; border:1px solid var(--border); transition:.15s; font-size:.95rem;
+  }
+  label:hover{border-color:var(--accent);}
+  label input{margin-right:8px;}
+  label.correct{border-color:var(--ok); background:rgba(34,197,94,.14);}
+  label.incorrect{border-color:var(--bad); background:rgba(239,68,68,.14);}
+  textarea{
+    width:100%; min-height:70px; background:#0b1222; color:var(--text);
+    border:1px solid var(--border); border-radius:8px; padding:10px;
+    font-family:inherit; font-size:.9rem; resize:vertical;
+  }
+  .btns{position:sticky; bottom:0; background:var(--bg); padding:14px 0; display:flex; gap:10px;}
+  button{
+    background:var(--accent); color:#0f172a; border:none; font-weight:700;
+    padding:12px 20px; border-radius:8px; cursor:pointer; font-size:.95rem;
+  }
+  button.secondary{background:transparent; color:var(--text); border:1px solid var(--border);}
+  button:hover{opacity:.9;}
+  #result{
+    margin:16px 0; padding:16px 20px; border-radius:12px; font-weight:700;
+    display:none;
+  }
+  .note{color:var(--muted); font-size:.85rem; margin-top:8px; line-height:1.5;}
+  .abierta p.stem{margin-bottom:8px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Test completo — Calidad</h1>
+  <p class="sub">31 preguntas de opción múltiple + 8 preguntas abiertas de repaso</p>
+
+  <div class="btns">
+    <button onclick="corregir()">Corregir</button>
+    <button class="secondary" onclick="reiniciar()">Reiniciar (nuevo orden)</button>
+  </div>
+  <div id="result"></div>
+
+  <div id="contenido"></div>
+
+  <p class="note">
+    Las respuestas correctas están marcadas a partir del contenido de tus documentos de clase.
+    Conviene contrastarlas con el profesor antes de darlas por definitivas.
+  </p>
+</div>
+
+<script>
+const bloques = [
+{ titulo: "BLOQUE 1 — Conceptos fundamentales", preguntas: [
+  { stem: "1. Según el enfoque actual de calidad, ¿cuál es la idea fundamental?",
+    opciones: ["Fabricar siempre al menor coste posible.","Cumplir exclusivamente las especificaciones técnicas.","Satisfacer las necesidades y expectativas del cliente.","Detectar todos los productos defectuosos antes de venderlos."],
+    correcta: "Satisfacer las necesidades y expectativas del cliente." },
+  { stem: "2. ¿Cuál de estas afirmaciones diferencia mejor el enfoque tradicional del moderno?",
+    opciones: ["Tradicional = prevención / moderno = inspección.","Tradicional = inspección / moderno = prevención.","Ambos se basan principalmente en inspección.","Ambos consideran que la calidad es responsabilidad exclusiva del inspector."],
+    correcta: "Tradicional = inspección / moderno = prevención." },
+  { stem: "3. Un producto puede cumplir perfectamente sus especificaciones técnicas y, aun así, no tener calidad desde el punto de vista del cliente porque:",
+    opciones: ["Las especificaciones técnicas nunca son importantes.","El cliente puede no considerar que satisface sus necesidades y expectativas.","Todo producto técnicamente correcto tiene necesariamente calidad.","La calidad depende únicamente del precio."],
+    correcta: "El cliente puede no considerar que satisface sus necesidades y expectativas." },
+  { stem: "4. ¿Qué diferencia hay entre una necesidad explícita y una implícita?",
+    opciones: ["La explícita siempre es técnica y la implícita siempre económica.","La explícita la expresa o establece el cliente; la implícita puede no expresarse pero ser necesaria.","La implícita solamente aparece después de comprar.","No existe ninguna diferencia."],
+    correcta: "La explícita la expresa o establece el cliente; la implícita puede no expresarse pero ser necesaria." },
+  { stem: "5. Según el material, ¿quién ocupa el papel central en el concepto moderno de calidad?",
+    opciones: ["El inspector.","El proveedor.","El departamento de producción.","El cliente."],
+    correcta: "El cliente." }
+]},
+{ titulo: "BLOQUE 2 — Evolución de la calidad", preguntas: [
+  { stem: "6. Ordena correctamente la evolución:",
+    opciones: ["Gestión → inspección → control → aseguramiento.","Inspección → control de calidad → aseguramiento → gestión de la calidad.","Control → inspección → gestión → aseguramiento.","Inspección → gestión → control → aseguramiento."],
+    correcta: "Inspección → control de calidad → aseguramiento → gestión de la calidad." },
+  { stem: "7. En los primeros estudios estadísticos de Bell Telephone aparece asociado especialmente:",
+    opciones: ["Deming.","Juran.","Shewhart.","Ishikawa."],
+    correcta: "Shewhart." },
+  { stem: "8. ¿Qué característica diferencia especialmente el enfoque japonés desarrollado después de la Segunda Guerra Mundial del enfoque occidental de aquella época?",
+    opciones: ["Japón se centró principalmente en la inspección final.","Japón desarrolló un enfoque basado en la prevención y la participación.","Japón abandonó los métodos estadísticos.","Japón eliminó la responsabilidad de los mandos."],
+    correcta: "Japón desarrolló un enfoque basado en la prevención y la participación." },
+  { stem: "9. ¿Qué provocó, según el material, que la calidad adquiriera una importancia estratégica creciente desde mediados de los años 70?",
+    opciones: ["La desaparición de la competencia internacional.","La saturación de los mercados y el mayor poder de los clientes.","La reducción de la producción japonesa.","La desaparición del marketing."],
+    correcta: "La saturación de los mercados y el mayor poder de los clientes." },
+  { stem: "10. ¿Qué diferencia fundamental existe entre inspección y prevención?",
+    opciones: ["La inspección intenta evitar errores antes de producir; la prevención los detecta después.","Son exactamente lo mismo.","La inspección detecta problemas; la prevención intenta evitar que aparezcan.","La prevención solo sirve para productos terminados."],
+    correcta: "La inspección detecta problemas; la prevención intenta evitar que aparezcan." }
+]},
+{ titulo: "BLOQUE 3 — Calidad Total y Gestión de la Calidad", preguntas: [
+  { stem: "11. La Calidad Total se caracteriza principalmente por:",
+    opciones: ["Ser responsabilidad exclusiva del departamento de calidad.","Centrarse únicamente en el producto terminado.","Implicar a toda la organización y orientarse al cliente.","Eliminar la necesidad de controlar los procesos."],
+    correcta: "Implicar a toda la organización y orientarse al cliente." },
+  { stem: "12. En Calidad Total, ¿qué significa el concepto de cliente interno?",
+    opciones: ["El cliente que compra productos dentro del país.","Un miembro de la organización que recibe el trabajo de otro miembro o área.","El cliente que no paga directamente.","El proveedor de materias primas."],
+    correcta: "Un miembro de la organización que recibe el trabajo de otro miembro o área." },
+  { stem: "13. Según el material, una persona dentro de la organización puede actuar simultáneamente como:",
+    opciones: ["Inspector y gerente.","Cliente y proveedor interno.","Cliente y competidor.","Proveedor y consumidor externo."],
+    correcta: "Cliente y proveedor interno." },
+  { stem: "14. ¿Cuál de estas opciones NO encaja con los principios de gestión de la calidad recogidos en los documentos?",
+    opciones: ["Enfoque basado en el cliente.","Participación de los miembros de la empresa.","Cooperación con proveedores.","Responsabilidad exclusiva del inspector."],
+    correcta: "Responsabilidad exclusiva del inspector." },
+  { stem: "15. ¿Cuál es uno de los objetivos fundamentales de la mejora continua?",
+    opciones: ["Hacer que los procesos sean cada vez más eficientes y reducir errores.","Sustituir continuamente a los trabajadores.","Aumentar deliberadamente los controles finales.","Evitar modificar los procesos existentes."],
+    correcta: "Hacer que los procesos sean cada vez más eficientes y reducir errores." }
+]},
+{ titulo: "BLOQUE 4 — Costes de calidad y no-calidad", preguntas: [
+  { stem: "16. ¿Cuál de los siguientes es un ejemplo de coste de no-calidad?",
+    opciones: ["Formación preventiva.","Planificación de la calidad.","Reprocesar una pieza defectuosa.","Diseñar correctamente un procedimiento."],
+    correcta: "Reprocesar una pieza defectuosa." },
+  { stem: "17. Los costes de no-calidad pueden incluir:",
+    opciones: ["Únicamente desperdicio de material.","Desperdicios, reparaciones, devoluciones y otros costes derivados de fallos.","Únicamente el salario del inspector.","Solamente costes que aparecen directamente en la contabilidad."],
+    correcta: "Desperdicios, reparaciones, devoluciones y otros costes derivados de fallos." },
+  { stem: "18. ¿Cuál sería un coste de prevención?",
+    opciones: ["Reparar una pieza defectuosa.","Reinspeccionar una pieza.","Formar al personal para evitar errores.","Gestionar una devolución de un cliente."],
+    correcta: "Formar al personal para evitar errores." },
+  { stem: "19. ¿Qué diferencia existe entre un coste visible y uno oculto de la no-calidad?",
+    opciones: ["El coste oculto no existe realmente.","El coste oculto puede incluir pérdidas menos evidentes, como tiempo perdido o deterioro de la imagen.","El coste visible siempre es mayor.","Solo los costes visibles afectan a la empresa."],
+    correcta: "El coste oculto puede incluir pérdidas menos evidentes, como tiempo perdido o deterioro de la imagen." }
+]},
+{ titulo: "BLOQUE 5 — Aseguramiento de la calidad", preguntas: [
+  { stem: "20. El aseguramiento de la calidad consiste principalmente en:",
+    opciones: ["Inspeccionar todos los productos terminados.","Aplicar actuaciones planificadas y sistemáticas dentro del sistema de gestión de calidad.","Eliminar toda la documentación de la empresa.","Sustituir la gestión de calidad por inspección."],
+    correcta: "Aplicar actuaciones planificadas y sistemáticas dentro del sistema de gestión de calidad." },
+  { stem: "21. ¿Cuál de estos elementos forma parte de la documentación habitual de un sistema de aseguramiento?",
+    opciones: ["Manual de calidad.","Procedimientos.","Instrucciones de trabajo y registros.","Todas las anteriores."],
+    correcta: "Todas las anteriores." },
+  { stem: "22. Para implantar correctamente un sistema de aseguramiento de la calidad, el material destaca especialmente:",
+    opciones: ["El compromiso de la dirección.","Que solo participe el departamento de calidad.","Que no exista formación.","Que se eliminen los procedimientos escritos."],
+    correcta: "El compromiso de la dirección." },
+  { stem: "23. Para obtener una certificación del sistema de calidad, la empresa debe:",
+    opciones: ["Comprar directamente el certificado.","Superar una auditoría del organismo de certificación correspondiente.","Demostrar que nunca ha tenido un defecto.","Sustituir a todo su personal."],
+    correcta: "Superar una auditoría del organismo de certificación correspondiente." }
+]},
+{ titulo: "BLOQUE 6 — PDCA / Deming", preguntas: [
+  { stem: "24. ¿Qué significan las cuatro fases del ciclo PDCA?",
+    opciones: ["Planificar – Hacer – Verificar – Actuar/Corregir.","Producir – Diseñar – Controlar – Analizar.","Planificar – Diseñar – Comprar – Auditar.","Prevenir – Detectar – Controlar – Analizar."],
+    correcta: "Planificar – Hacer – Verificar – Actuar/Corregir." },
+  { stem: "25. ¿Qué objetivo tiene el ciclo de Deming?",
+    opciones: ["Realizar una única mejora y finalizar el proceso.","Mantener un proceso de mejora continua.","Sustituir la planificación por inspecciones.","Reducir únicamente los costes de personal."],
+    correcta: "Mantener un proceso de mejora continua." }
+]},
+{ titulo: "BLOQUE 7 — Aplicación práctica", preguntas: [
+  { stem: "26. Una empresa fabrica una estructura metálica. Al terminarla descubre que varios cordones de soldadura no cumplen los requisitos y debe repetirlos. ¿Qué enfoque representa mejor esta situación?",
+    opciones: ["Prevención.","Corrección posterior mediante inspección.","Mejora preventiva.","Calidad Total correctamente implantada."],
+    correcta: "Corrección posterior mediante inspección." },
+  { stem: "27. La misma empresa decide posteriormente revisar el procedimiento de soldadura, formar a los soldadores y establecer controles durante el proceso para evitar que vuelva a ocurrir. ¿Qué concepto representa mejor esta actuación?",
+    opciones: ["Prevención y mejora continua.","Inspección final exclusivamente.","Coste oculto.","Cliente externo."],
+    correcta: "Prevención y mejora continua." },
+  { stem: "28. Una empresa recibe acero de un proveedor. El material cumple las especificaciones, pero llega tarde constantemente y provoca retrasos en producción. Desde el punto de vista de la calidad, ¿qué elemento se está viendo afectado?",
+    opciones: ["Solo la calidad del producto final.","La gestión del proceso y la relación con proveedores.","Únicamente la inspección.","Ninguno, porque el acero cumple las especificaciones."],
+    correcta: "La gestión del proceso y la relación con proveedores." }
+]},
+{ titulo: "BLOQUE 8 — Gantt", preguntas: [
+  { stem: "29. ¿Para qué sirve principalmente un gráfico de Gantt?",
+    opciones: ["Para determinar la composición química de un material.","Para representar y controlar temporalmente las actividades de un proyecto o producción.","Para calcular la resistencia de una soldadura.","Para certificar una empresa según ISO."],
+    correcta: "Para representar y controlar temporalmente las actividades de un proyecto o producción." },
+  { stem: "30. En un Gantt, las actividades se representan normalmente mediante:",
+    opciones: ["Círculos cuya superficie representa el coste.","Rectángulos cuya longitud es proporcional a la duración estimada.","Líneas verticales que representan únicamente los trabajadores.","Puntos sin relación con el tiempo."],
+    correcta: "Rectángulos cuya longitud es proporcional a la duración estimada." },
+  { stem: "31. ¿Qué permite detectar el gráfico de Gantt durante el seguimiento de una producción?",
+    opciones: ["Desviaciones respecto a los plazos previstos.","Únicamente defectos de materiales.","Solo problemas de soldadura.","Exclusivamente costes económicos."],
+    correcta: "Desviaciones respecto a los plazos previstos." }
+]}
+];
+
+const abiertas = {
+  titulo: "BLOQUE 9 — Preguntas abiertas (repaso sin corrección automática)",
+  preguntas: [
+    "32. Explícame con tus palabras qué es la calidad.",
+    "33. Explícame la diferencia entre control de calidad, aseguramiento de la calidad y gestión de la calidad.",
+    "34. ¿Por qué la Calidad Total implica a toda la empresa y no solamente al departamento de calidad?",
+    "35. Ponme un ejemplo relacionado con construcciones metálicas en el que se vea claramente la diferencia entre inspección y prevención.",
+    "36. Explícame el ciclo PDCA con un ejemplo de un taller de soldadura.",
+    "37. ¿Qué es para ti el coste de la no-calidad? Pon dos ejemplos.",
+    "38. ¿Qué información nos proporciona un gráfico de Gantt y para qué podría servir en un proyecto de construcciones metálicas?",
+    "39. Sin mirar los apuntes, intenta escribir todos los nombres de personas relacionados con la evolución de la calidad que recuerdes y, si puedes, qué aportó cada uno."
+  ]
+};
+
+function shuffle(arr){
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function render(){
+  const contenedor = document.getElementById('contenido');
+  contenedor.innerHTML = '';
+  let qCounter = 0;
+
+  bloques.forEach((bloque) => {
+    const h2 = document.createElement('h2');
+    h2.className = 'bloque';
+    h2.textContent = bloque.titulo;
+    contenedor.appendChild(h2);
+
+    bloque.preguntas.forEach((p) => {
+      const id = qCounter++;
+      const opcionesBarajadas = shuffle(p.opciones);
+      const div = document.createElement('div');
+      div.className = 'q';
+      div.dataset.correcta = p.correcta;
+      div.innerHTML = `<p class="stem">${p.stem}</p>` +
+        opcionesBarajadas.map((op, j) => `
+          <label id="q${id}o${j}" data-value="${op.replace(/"/g,'&quot;')}">
+            <input type="radio" name="q${id}" value="${op.replace(/"/g,'&quot;')}"> ${op}
+          </label>
+        `).join('');
+      contenedor.appendChild(div);
+    });
+  });
+
+  const h2a = document.createElement('h2');
+  h2a.className = 'bloque';
+  h2a.textContent = abiertas.titulo;
+  contenedor.appendChild(h2a);
+
+  abiertas.preguntas.forEach((stem) => {
+    const div = document.createElement('div');
+    div.className = 'q abierta';
+    div.innerHTML = `<p class="stem">${stem}</p><textarea placeholder="Escribe tu respuesta aquí para practicar..."></textarea>`;
+    contenedor.appendChild(div);
+  });
+}
+
+function corregir(){
+  const preguntasDiv = document.querySelectorAll('#contenido .q:not(.abierta)');
+  let aciertos = 0;
+  preguntasDiv.forEach((div) => {
+    const correcta = div.dataset.correcta;
+    const labels = div.querySelectorAll('label');
+    const seleccionado = div.querySelector('input:checked');
+    labels.forEach(l => l.classList.remove('correct','incorrect'));
+    labels.forEach(l => {
+      if (l.dataset.value === correcta) l.classList.add('correct');
+    });
+    if (seleccionado && seleccionado.value !== correcta){
+      seleccionado.closest('label').classList.add('incorrect');
+    }
+    if (seleccionado && seleccionado.value === correcta) aciertos++;
+  });
+
+  const result = document.getElementById('result');
+  result.style.display = 'block';
+  result.style.background = aciertos === preguntasDiv.length ? 'rgba(34,197,94,.15)' : 'rgba(56,189,248,.12)';
+  result.textContent = `Resultado: ${aciertos} / ${preguntasDiv.length} correctas (opción múltiple)`;
+  result.scrollIntoView({behavior:'smooth', block:'center'});
+}
+
+function reiniciar(){
+  document.getElementById('result').style.display = 'none';
+  render();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+render();
+</script>
+</body>
+</html>
